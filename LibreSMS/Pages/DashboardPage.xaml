@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="LibreSMS.Pages.DashboardPage"
+             Title="LibreSMS">
+
+    <ScrollView BackgroundColor="{StaticResource BgPrimary}">
+        <VerticalStackLayout Padding="20,16" Spacing="16">
+
+            <!-- Header -->
+            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                <BoxView WidthRequest="4" HeightRequest="32" Color="{StaticResource AccentGreen}" CornerRadius="2"/>
+                <VerticalStackLayout>
+                    <Label Text="SMS GATEWAY" FontSize="22" FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}" CharacterSpacing="3"/>
+                    <Label x:Name="SubtitleLabel" Text="Stopped" FontSize="11"
+                           TextColor="{StaticResource TextSecondary}" CharacterSpacing="1"/>
+                </VerticalStackLayout>
+                <Label x:Name="StatusDot" Text="●" FontSize="24"
+                       TextColor="{StaticResource AccentRed}"
+                       HorizontalOptions="EndAndExpand" VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+
+            <!-- Default SMS App Banner -->
+            <Border x:Name="DefaultAppBanner"
+                    BackgroundColor="#1A1200" StrokeThickness="1"
+                    IsVisible="False">
+                <Border.Stroke>
+                    <SolidColorBrush Color="{StaticResource AccentAmber}"/>
+                </Border.Stroke>
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8"/>
+                </Border.StrokeShape>
+                <HorizontalStackLayout Padding="14,10" Spacing="12">
+                    <Label Text="⚠" FontSize="18" TextColor="{StaticResource AccentAmber}" VerticalOptions="Center"/>
+                    <VerticalStackLayout HorizontalOptions="FillAndExpand">
+                        <Label Text="NOT DEFAULT SMS APP" FontSize="11" FontAttributes="Bold"
+                               TextColor="{StaticResource AccentAmber}" CharacterSpacing="2"/>
+                        <Label Text="Tap to set as default for full SMS/MMS receive support"
+                               FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                    </VerticalStackLayout>
+                    <Button Text="SET" BackgroundColor="{StaticResource AccentAmber}"
+                            TextColor="Black" FontSize="11" FontAttributes="Bold"
+                            Padding="10,6" CornerRadius="4"
+                            Clicked="OnSetDefaultClicked"/>
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Start / Stop Button -->
+            <Button x:Name="StartStopButton"
+                    Text="START GATEWAY"
+                    BackgroundColor="{StaticResource AccentGreen}"
+                    TextColor="Black"
+                    FontAttributes="Bold"
+                    FontSize="15"
+                    CharacterSpacing="2"
+                    HeightRequest="56"
+                    CornerRadius="8"
+                    Clicked="OnStartStopClicked"/>
+
+            <!-- Stats Grid -->
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+
+                <Border Grid.Row="0" Grid.Column="0" BackgroundColor="{StaticResource BgCard}"
+                        StrokeThickness="1" Padding="16,14">
+                    <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                    <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                    <VerticalStackLayout>
+                        <Label Text="RECEIVED" FontSize="10" CharacterSpacing="2"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Label x:Name="ReceivedCount" Text="0" FontSize="32" FontAttributes="Bold"
+                               TextColor="{StaticResource AccentCyan}"/>
+                        <Label Text="messages" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="0" Grid.Column="1" BackgroundColor="{StaticResource BgCard}"
+                        StrokeThickness="1" Padding="16,14">
+                    <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                    <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                    <VerticalStackLayout>
+                        <Label Text="SENT" FontSize="10" CharacterSpacing="2"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Label x:Name="SentCount" Text="0" FontSize="32" FontAttributes="Bold"
+                               TextColor="{StaticResource AccentGreen}"/>
+                        <Label Text="messages" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="0" BackgroundColor="{StaticResource BgCard}"
+                        StrokeThickness="1" Padding="16,14">
+                    <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                    <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                    <VerticalStackLayout>
+                        <Label Text="WEBHOOK OK" FontSize="10" CharacterSpacing="2"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Label x:Name="WebhookOkCount" Text="0" FontSize="32" FontAttributes="Bold"
+                               TextColor="{StaticResource AccentGreen}"/>
+                        <Label Text="delivered" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="1" BackgroundColor="{StaticResource BgCard}"
+                        StrokeThickness="1" Padding="16,14">
+                    <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                    <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                    <VerticalStackLayout>
+                        <Label Text="WEBHOOK FAIL" FontSize="10" CharacterSpacing="2"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Label x:Name="WebhookFailCount" Text="0" FontSize="32" FontAttributes="Bold"
+                               TextColor="{StaticResource AccentRed}"/>
+                        <Label Text="failures" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                    </VerticalStackLayout>
+                </Border>
+
+            </Grid>
+
+            <!-- Endpoint Info Card -->
+            <Border BackgroundColor="{StaticResource BgCard}" StrokeThickness="1" Padding="16,14">
+                <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="HTTP ENDPOINTS" FontSize="10" CharacterSpacing="2"
+                           TextColor="{StaticResource TextSecondary}"/>
+
+                    <BoxView HeightRequest="1" Color="{StaticResource Border}"/>
+
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
+                        <Label Grid.Row="0" Grid.Column="0" Text="GET" FontSize="10"
+                               TextColor="{StaticResource AccentCyan}" FontAttributes="Bold"
+                               VerticalOptions="Center"/>
+                        <Label Grid.Row="0" Grid.Column="1" x:Name="SendSmsEndpoint"
+                               Text="http://localhost:8686/sendsms"
+                               FontSize="11" TextColor="{StaticResource AccentGreen}"/>
+
+                        <Label Grid.Row="1" Grid.Column="0" Text="GET" FontSize="10"
+                               TextColor="{StaticResource AccentCyan}" FontAttributes="Bold"
+                               VerticalOptions="Center"/>
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="SendMmsEndpoint"
+                               Text="http://localhost:8686/sendmms"
+                               FontSize="11" TextColor="{StaticResource AccentGreen}"/>
+
+                        <Label Grid.Row="2" Grid.Column="0" Text="GET" FontSize="10"
+                               TextColor="{StaticResource AccentCyan}" FontAttributes="Bold"
+                               VerticalOptions="Center"/>
+                        <Label Grid.Row="2" Grid.Column="1" x:Name="StatusEndpoint"
+                               Text="http://localhost:8686/status"
+                               FontSize="11" TextColor="{StaticResource AccentGreen}"/>
+
+                        <Label Grid.Row="3" Grid.Column="0" Text="GET" FontSize="10"
+                               TextColor="{StaticResource AccentCyan}" FontAttributes="Bold"
+                               VerticalOptions="Center"/>
+                        <Label Grid.Row="3" Grid.Column="1" x:Name="HealthEndpoint"
+                               Text="http://localhost:8686/health"
+                               FontSize="11" TextColor="{StaticResource AccentGreen}"/>
+                        
+                        <Label Grid.Row="4" Grid.Column="0" Text="GET" FontSize="10"
+                               TextColor="{StaticResource AccentCyan}" FontAttributes="Bold"
+                               VerticalOptions="Center"/>
+                        <Label Grid.Row="4" Grid.Column="1" x:Name="GetMessagesEndpoint"
+                               Text="http://localhost:8686/getmessages"
+                               FontSize="11" TextColor="{StaticResource AccentGreen}"/>
+                    </Grid>
+
+                    <BoxView HeightRequest="1" Color="{StaticResource Border}"/>
+
+                    <Label Text="Params: to, message, image (base64), image_url" FontSize="11"
+                           TextColor="{StaticResource TextSecondary}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Uptime -->
+            <Border BackgroundColor="{StaticResource BgCard}" StrokeThickness="1" Padding="14,10">
+                <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <HorizontalStackLayout Spacing="8">
+                    <Label Text="UPTIME" FontSize="10" CharacterSpacing="2"
+                           TextColor="{StaticResource TextSecondary}" VerticalOptions="Center"/>
+                    <Label x:Name="UptimeLabel" Text="—" FontSize="13"
+                           TextColor="{StaticResource TextPrimary}" HorizontalOptions="EndAndExpand"
+                           VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

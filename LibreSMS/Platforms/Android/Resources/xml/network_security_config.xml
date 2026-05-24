@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+	<!-- Allow cleartext HTTP to AT&T's MMSC and proxy — required for MMS sending.
+         The MMSC is only reachable on the carrier's private APN network,
+         so there is no meaningful security risk in allowing HTTP here. -->
+	<domain-config cleartextTrafficPermitted="true">
+		<domain includeSubdomains="true">mmsc.mobile.att.net</domain>
+		<domain includeSubdomains="true">proxy.mobile.att.net</domain>
+	</domain-config>
+</network-security-config>

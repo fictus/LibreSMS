@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<paths>
+	<!--
+        Exposes Context.getCacheDir() as a content:// URI.
+        SmsSenderService writes MMS attachments here and shares them
+        via FileProvider instead of Uri.FromFile() (which throws
+        FileUriExposedException on Android 7+).
+    -->
+	<cache-path name="mms_attachments" path="." />
+</paths>

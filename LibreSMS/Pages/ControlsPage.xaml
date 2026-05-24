@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="LibreSMS.Pages.ControlsPage"
+             Title="Controls">
+
+    <ScrollView BackgroundColor="{StaticResource BgPrimary}">
+        <VerticalStackLayout Padding="20,16" Spacing="16">
+
+            <!-- Header -->
+            <HorizontalStackLayout Spacing="10">
+                <BoxView WidthRequest="4" HeightRequest="28" Color="{StaticResource AccentCyan}" CornerRadius="2"/>
+                <Label Text="CONFIGURATION" FontSize="18" FontAttributes="Bold"
+                       TextColor="{StaticResource TextPrimary}" CharacterSpacing="2"
+                       VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+
+            <!-- Webhook Section -->
+            <Border BackgroundColor="{StaticResource BgCard}" StrokeThickness="1" Padding="16">
+                <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="WEBHOOK" FontSize="10" CharacterSpacing="3"
+                           TextColor="{StaticResource AccentCyan}"/>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Webhook URL" FontSize="13" TextColor="{StaticResource TextSecondary}"/>
+                        <Border StrokeThickness="1" Padding="0">
+                            <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                            <Border.StrokeShape><RoundRectangle CornerRadius="6"/></Border.StrokeShape>
+                            <Entry x:Name="WebhookUrlEntry"
+                                   Placeholder="https://your-server.com/webhook"
+                                   Keyboard="Url"
+                                   BackgroundColor="{StaticResource BgSecondary}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   PlaceholderColor="{StaticResource TextSecondary}"
+                                   FontSize="13"
+                                   Margin="0"/>
+                        </Border>
+                        <Label Text="Receives GET requests with: id, from, to, message, type, timestamp, attachment_*"
+                               FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Webhook Secret (optional)" FontSize="13"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Border StrokeThickness="1" Padding="0">
+                            <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                            <Border.StrokeShape><RoundRectangle CornerRadius="6"/></Border.StrokeShape>
+                            <Entry x:Name="WebhookSecretEntry"
+                                   Placeholder="secret token"
+                                   IsPassword="True"
+                                   BackgroundColor="{StaticResource BgSecondary}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   PlaceholderColor="{StaticResource TextSecondary}"
+                                   FontSize="13"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <VerticalStackLayout HorizontalOptions="FillAndExpand">
+                            <Label Text="Forward SMS" FontSize="13" TextColor="{StaticResource TextPrimary}"/>
+                            <Label Text="Send incoming SMS to webhook" FontSize="11"
+                                   TextColor="{StaticResource TextSecondary}"/>
+                        </VerticalStackLayout>
+                        <Switch x:Name="ForwardSmsSwitch" OnColor="{StaticResource AccentGreen}"/>
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <VerticalStackLayout HorizontalOptions="FillAndExpand">
+                            <Label Text="Forward MMS" FontSize="13" TextColor="{StaticResource TextPrimary}"/>
+                            <Label Text="Send incoming MMS + attachments to webhook" FontSize="11"
+                                   TextColor="{StaticResource TextSecondary}"/>
+                        </VerticalStackLayout>
+                        <Switch x:Name="ForwardMmsSwitch" OnColor="{StaticResource AccentGreen}"/>
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- HTTP Server Section -->
+            <Border BackgroundColor="{StaticResource BgCard}" StrokeThickness="1" Padding="16">
+                <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="HTTP SERVER" FontSize="10" CharacterSpacing="3"
+                           TextColor="{StaticResource AccentCyan}"/>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Listen Port" FontSize="13" TextColor="{StaticResource TextSecondary}"/>
+                        <Border StrokeThickness="1" Padding="0">
+                            <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                            <Border.StrokeShape><RoundRectangle CornerRadius="6"/></Border.StrokeShape>
+                            <Entry x:Name="PortEntry"
+                                   Text="8686"
+                                   Keyboard="Numeric"
+                                   BackgroundColor="{StaticResource BgSecondary}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   FontSize="13"/>
+                        </Border>
+                        <Label Text="Port for incoming /sendsms and /sendmms requests"
+                               FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                    </VerticalStackLayout>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <VerticalStackLayout HorizontalOptions="FillAndExpand">
+                            <Label Text="Auto-Start on Boot" FontSize="13" TextColor="{StaticResource TextPrimary}"/>
+                            <Label Text="Start gateway automatically when device boots" FontSize="11"
+                                   TextColor="{StaticResource TextSecondary}"/>
+                        </VerticalStackLayout>
+                        <Switch x:Name="AutoStartSwitch" OnColor="{StaticResource AccentGreen}"/>
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Default SMS App Section -->
+            <Border BackgroundColor="{StaticResource BgCard}" StrokeThickness="1" Padding="16">
+                <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="DEFAULT SMS APP" FontSize="10" CharacterSpacing="3"
+                           TextColor="{StaticResource AccentCyan}"/>
+
+                    <Label Text="This app must be set as the default SMS app to receive incoming SMS and MMS messages. Without this, only sent messages will work."
+                           FontSize="13" TextColor="{StaticResource TextSecondary}"/>
+
+                    <HorizontalStackLayout Spacing="10">
+                        <Label x:Name="DefaultAppStatus" Text="Checking..." FontSize="13"
+                               TextColor="{StaticResource TextSecondary}" VerticalOptions="Center"
+                               HorizontalOptions="FillAndExpand"/>
+                        <Button Text="SET AS DEFAULT"
+                                BackgroundColor="{StaticResource AccentAmber}"
+                                TextColor="Black" FontSize="11" FontAttributes="Bold"
+                                Padding="12,8" CornerRadius="6"
+                                Clicked="OnSetDefaultClicked"/>
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Save Button -->
+            <Button Text="SAVE CONFIGURATION"
+                    BackgroundColor="{StaticResource AccentCyan}"
+                    TextColor="Black"
+                    FontAttributes="Bold"
+                    FontSize="14"
+                    CharacterSpacing="2"
+                    HeightRequest="52"
+                    CornerRadius="8"
+                    Clicked="OnSaveClicked"/>
+
+            <Label x:Name="SaveStatusLabel" Text="" FontSize="13"
+                   TextColor="{StaticResource AccentGreen}"
+                   HorizontalOptions="Center"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="LibreSMS.Pages.LogsPage"
+             Title="Logs">
+
+    <Grid RowDefinitions="Auto,*,Auto" BackgroundColor="{StaticResource BgPrimary}">
+
+        <!-- Header bar -->
+        <HorizontalStackLayout Grid.Row="0" Padding="20,14,20,10" Spacing="10">
+            <BoxView WidthRequest="4" HeightRequest="24" Color="{StaticResource AccentAmber}" CornerRadius="2"
+                     VerticalOptions="Center"/>
+            <Label Text="ACTIVITY LOG" FontSize="16" FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}" CharacterSpacing="2"
+                   VerticalOptions="Center" HorizontalOptions="FillAndExpand"/>
+            <Label x:Name="LogCountLabel" Text="0 entries" FontSize="11"
+                   TextColor="{StaticResource TextSecondary}" VerticalOptions="Center"/>
+            <Button Text="CLEAR" BackgroundColor="Transparent"
+                    TextColor="{StaticResource AccentRed}"
+                    FontSize="11" FontAttributes="Bold" CharacterSpacing="1"
+                    Padding="8,4" BorderColor="{StaticResource AccentRed}" BorderWidth="1"
+                    CornerRadius="4"
+                    Clicked="OnClearClicked"/>
+        </HorizontalStackLayout>
+
+        <!-- Log list -->
+        <CollectionView Grid.Row="1"
+                        x:Name="LogList"
+                        BackgroundColor="Transparent"
+                        Margin="12,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid ColumnDefinitions="52,Auto,*" Padding="4,3" ColumnSpacing="8">
+
+                        <!-- Level badge -->
+                        <Border Grid.Column="0"
+                                Padding="4,2"
+                                HorizontalOptions="Center" VerticalOptions="Center">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="3"/></Border.StrokeShape>
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding Level}" Value="ERROR">
+                                    <Setter Property="BackgroundColor" Value="#3D0010"/>
+                                    <Setter Property="Stroke" Value="#FF3B5C"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding Level}" Value="WARN">
+                                    <Setter Property="BackgroundColor" Value="#2A1E00"/>
+                                    <Setter Property="Stroke" Value="#FFB800"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding Level}" Value="OK">
+                                    <Setter Property="BackgroundColor" Value="#002210"/>
+                                    <Setter Property="Stroke" Value="#00FF88"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding Level}" Value="INFO">
+                                    <Setter Property="BackgroundColor" Value="#001A22"/>
+                                    <Setter Property="Stroke" Value="#00D4FF"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Label Text="{Binding Level}" FontSize="9" FontAttributes="Bold"
+                                   HorizontalOptions="Center">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding Level}" Value="ERROR">
+                                        <Setter Property="TextColor" Value="#FF3B5C"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding Level}" Value="WARN">
+                                        <Setter Property="TextColor" Value="#FFB800"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding Level}" Value="OK">
+                                        <Setter Property="TextColor" Value="#00FF88"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding Level}" Value="INFO">
+                                        <Setter Property="TextColor" Value="#00D4FF"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+
+                        <!-- Timestamp -->
+                        <Label Grid.Column="1"
+                               Text="{Binding Timestamp, StringFormat='{0:HH:mm:ss}'}"
+                               FontSize="10" TextColor="{StaticResource TextSecondary}"
+                               VerticalOptions="Center"/>
+
+                        <!-- Message -->
+                        <Label Grid.Column="2"
+                               Text="{Binding Message}"
+                               FontSize="12" TextColor="{StaticResource TextPrimary}"
+                               LineBreakMode="WordWrap"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Bottom status bar -->
+        <Border Grid.Row="2" BackgroundColor="{StaticResource BgSecondary}"
+                StrokeThickness="0" Padding="20,10">
+            <HorizontalStackLayout Spacing="6">
+                <Label x:Name="LiveDot" Text="●" FontSize="10" TextColor="{StaticResource AccentGreen}"
+                       VerticalOptions="Center"/>
+                <Label Text="LIVE" FontSize="10" CharacterSpacing="2"
+                       TextColor="{StaticResource TextSecondary}" VerticalOptions="Center"/>
+                <Label Text="| Last 500 entries" FontSize="10"
+                       TextColor="{StaticResource TextSecondary}" VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+        </Border>
+
+    </Grid>
+</ContentPage>

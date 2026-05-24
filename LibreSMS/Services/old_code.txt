@@ -1,0 +1,487 @@
+
+
+public async Task<bool> SendMmsAsync_v2(SendMmsRequest request)
+        {
+#if ANDROID
+            ConnectivityManager? connectivity = null;
+            Network? mmsNetwork = null;
+
+            try
+            {
+                var context = Android.App.Application.Context;
+
+                // ── 1. Collect attachments ────────────────────────────────────
+                var attachments = new List<(byte[] Data, string Mime, string Name)>();
+
+                foreach (var b64 in request.ImageBase64)
+                {
+                    var raw = b64.Contains(',') ? b64.Split(',')[1] : b64;
+                    var bytes = Convert.FromBase64String(raw);
+                    var mime = DetectMime(bytes);
+                    attachments.Add((bytes, mime, $"att{attachments.Count}{MimeToExt(mime)}"));
+                }
+
+                foreach (var url in request.ImageUrls)
+                {
+                    var bytes = await _http.GetByteArrayAsync(url);
+                    var mime = DetectMime(bytes);
+                    attachments.Add((bytes, mime, $"att{attachments.Count}{MimeToExt(mime)}"));
+                }
+
+                // ── 2. Acquire MMS network (mobile data, not Wi-Fi) ───────────
+                connectivity = (ConnectivityManager?)context.GetSystemService(Context.ConnectivityService);
+                mmsNetwork = await AcquireMmsNetworkAsync(connectivity);
+
+                if (mmsNetwork == null)
+                {
+                    _log.Error("MMS: could not acquire mobile data network");
+                    return false;
+                }
+
+                // ── 3. Build MIME multipart/related body ──────────────────────
+                var boundary = "mms_" + Guid.NewGuid().ToString("N")[..16];
+                var mimeBody = BuildMimeBody(request.To, request.Message, attachments, boundary);
+
+                // ── 4. POST to MMSC via proxy ────────────────────────────────
+                // Create an HttpClient that is bound to the MMS network socket factory
+                var handler = new MmsSocketHandler(mmsNetwork, MmsProxy, MmsPort);
+                using var mmsc = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(60) };
+
+                var content = new ByteArrayContent(mimeBody);
+                content.Headers.Remove("Content-Type");
+                content.Headers.TryAddWithoutValidation(
+                    "Content-Type",
+                    $"application/vnd.wap.mms-message");
+
+                mmsc.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "*/*, application/vnd.wap.mms-message, application/vnd.wap.sic");
+                mmsc.DefaultRequestHeaders.TryAddWithoutValidation("X-Wap-Profile", "http://www.openmobilealliance.org/tech/profiles/UAPROF/ccppschema-20021212#");
+
+                _log.Info($"MMS: POSTing to {MmscUrl} via {MmsProxy}:{MmsPort}");
+                var response = await mmsc.PostAsync(MmscUrl, content);
+                var responseBody = await response.Content.ReadAsByteArrayAsync();
+
+                _log.Info($"MMS: MMSC response {(int)response.StatusCode}, body {responseBody.Length} bytes");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _log.Error($"MMS: MMSC rejected with {(int)response.StatusCode}");
+                    return false;
+                }
+
+                _log.Success($"MMS sent to {request.To} ({attachments.Count} attachment(s))");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"MMS send error: {ex}");
+                return false;
+            }
+            finally
+            {
+                // Release the MMS network request
+                if (connectivity != null && mmsNetwork != null)
+                    ReleaseMmsNetwork(connectivity);
+            }
+#else
+            _log.Warning("MMS sending only supported on Android");
+            return await Task.FromResult(false);
+#endif
+        }
+
+public async Task<bool> SendMmsAsync_v5(SendMmsRequest request)
+        {
+#if ANDROID
+            try
+            {
+                var context = Android.App.Application.Context;
+                var intent = new Intent(Intent.ActionSend);
+                intent.SetType("image/*");
+
+                intent.PutExtra("address", request.To);
+                intent.PutExtra("sms_body", request.Message);
+
+                var uris = new List<Android.OS.IParcelable>();
+
+                foreach (var b64 in request.ImageBase64)
+                {
+                    var raw = b64.Contains(",") ? b64.Split(',')[1] : b64;
+                    var bytes = Convert.FromBase64String(raw);
+
+                    var file = new Java.IO.File(
+                        context.CacheDir,
+                        $"{Guid.NewGuid():N}.jpg");
+
+                    await System.IO.File.WriteAllBytesAsync(file.AbsolutePath, bytes);
+
+                    var uri = AndroidX.Core.Content.FileProvider.GetUriForFile(
+                        context,
+                        context.PackageName + ".fileprovider",
+                        file);
+
+                    uris.Add(uri); // Uri implements IParcelable
+                }
+
+                intent.PutParcelableArrayListExtra(Intent.ExtraStream, uris);
+                intent.AddFlags(ActivityFlags.GrantReadUriPermission);
+                intent.AddFlags(ActivityFlags.NewTask);
+
+                context.StartActivity(intent);
+
+                _log.Success($"MMS queued to {request.To}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"MMS send error: {ex}");
+                return false;
+            }
+#else
+    return false;
+#endif
+        }
+
+        public async Task<bool> SendMmsAsync_v4(SendMmsRequest request)
+        {
+#if ANDROID
+            try
+            {
+                var context = Android.App.Application.Context;
+                var resolver = context.ContentResolver;
+
+                var smsManager = Android.Telephony.SmsManager.Default;
+
+                // 1. CREATE MMS
+                var values = new ContentValues();
+                values.Put("msg_box", 4);
+                values.Put("m_type", 128);
+                values.Put("sub", request.Message ?? "");
+                values.Put("sub_cs", 106);
+                values.Put("ct_t", "application/vnd.wap.multipart.related");
+                values.Put("date", Java.Lang.JavaSystem.CurrentTimeMillis() / 1000);
+
+                var mmsUri = resolver.Insert(
+                    Android.Net.Uri.Parse("content://mms"),
+                    values);
+
+                if (mmsUri == null)
+                {
+                    _log.Error("MMS insert failed");
+                    return false;
+                }
+
+                var messageId = mmsUri.LastPathSegment;
+
+                // 2. ADD RECIPIENT (CRITICAL — missing before was why nothing sent)
+                var addrValues = new ContentValues();
+                addrValues.Put("address", request.To);
+                addrValues.Put("type", 151);
+
+                resolver.Insert(
+                    Android.Net.Uri.Parse($"content://mms/{messageId}/addr"),
+                    addrValues);
+
+                // 3. ADD TEXT PART (CRITICAL)
+                if (!string.IsNullOrWhiteSpace(request.Message))
+                {
+                    var textValues = new ContentValues();
+                    textValues.Put("mid", messageId);
+                    textValues.Put("ct", "text/plain");
+                    textValues.Put("text", request.Message);
+
+                    resolver.Insert(
+                        Android.Net.Uri.Parse("content://mms/part"),
+                        textValues);
+                }
+
+                // 4. ADD IMAGE PARTS (optional but correct now)
+                foreach (var b64 in request.ImageBase64)
+                {
+                    var raw = b64.Contains(",") ? b64.Split(',')[1] : b64;
+                    var bytes = Convert.FromBase64String(raw);
+
+                    var file = new Java.IO.File(
+                        context.CacheDir,
+                        $"mms_{Guid.NewGuid():N}.jpg");
+
+                    await System.IO.File.WriteAllBytesAsync(file.AbsolutePath, bytes);
+
+                    var partValues = new ContentValues();
+                    partValues.Put("mid", messageId);
+                    partValues.Put("ct", "image/jpeg");
+                    partValues.Put("name", "image.jpg");
+
+                    var partUri = resolver.Insert(
+                        Android.Net.Uri.Parse("content://mms/part"),
+                        partValues);
+
+                    if (partUri != null)
+                    {
+                        using var stream = resolver.OpenOutputStream(partUri);
+                        await stream.WriteAsync(bytes);
+                    }
+                }
+
+                // 5. FORCE TRANSACTION SEND (THIS is what was missing)
+                var intent = new Intent("android.intent.action.SEND");
+
+                intent.SetClassName(
+                    "com.google.android.apps.messaging",
+                    "com.google.android.apps.messaging.shared.datamodel.action.ProcessPendingMmsAction");
+
+                context.StartService(intent);
+
+                _log.Success($"MMS queued to {request.To}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"MMS send error: {ex}");
+                return false;
+            }
+#else
+    return false;
+#endif
+        }
+
+        public async Task<bool> SendMmsAsync_v3(SendMmsRequest request)
+        {
+#if ANDROID
+            try
+            {
+                var context = Android.App.Application.Context;
+                var resolver = context.ContentResolver;
+
+                var smsManager = Android.Telephony.SmsManager.Default;
+
+                var parts = new List<Android.OS.Bundle>();
+
+                var uris = new List<Android.Net.Uri>();
+
+                foreach (var b64 in request.ImageBase64)
+                {
+                    var raw = b64.Contains(",") ? b64.Split(',')[1] : b64;
+                    var bytes = Convert.FromBase64String(raw);
+
+                    var file = new Java.IO.File(
+                        context.CacheDir,
+                        $"mms_{Guid.NewGuid():N}.jpg");
+
+                    await System.IO.File.WriteAllBytesAsync(file.AbsolutePath, bytes);
+
+                    var uri = AndroidX.Core.Content.FileProvider.GetUriForFile(
+                        context,
+                        context.PackageName + ".fileprovider",
+                        file);
+
+                    uris.Add(uri);
+                }
+
+                // CREATE REAL MMS URI (required)
+                var values = new ContentValues();
+                values.Put("msg_box", 4);
+                values.Put("m_type", 128);
+                values.Put("sub", request.Message ?? "");
+                values.Put("sub_cs", 106);
+
+                var mmsUri = resolver.Insert(
+                    Android.Net.Uri.Parse("content://mms"),
+                    values);
+
+                if (mmsUri == null)
+                {
+                    _log.Error("Failed to create MMS");
+                    return false;
+                }
+
+                var pendingIntent = PendingIntent.GetBroadcast(
+                    context,
+                    0,
+                    new Intent("MMS_SENT"),
+                    PendingIntentFlags.Immutable);
+
+                smsManager.SendMultimediaMessage(
+                    context,
+                    mmsUri,
+                    null,
+                    null,
+                    pendingIntent);
+
+                _log.Success($"MMS sent to {request.To}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"MMS send error: {ex}");
+                return false;
+            }
+#else
+    return false;
+#endif
+        }
+
+        public async Task<bool> SendMmsAsync_v2(SendMmsRequest request)
+        {
+#if ANDROID
+            try
+            {
+                var context = Android.App.Application.Context;
+                var resolver = context.ContentResolver;
+
+                var values = new ContentValues();
+
+                values.Put("msg_box", 4); // outbox
+                values.Put("m_type", 128);
+                values.Put("read", 1);
+                values.Put("seen", 1);
+                values.Put("sub", request.Message ?? "");
+                values.Put("sub_cs", 106);
+                values.Put("ct_t", "application/vnd.wap.multipart.related");
+                values.Put("exp", 604800);
+                values.Put("pri", 129);
+                values.Put("rr", 129);
+                values.Put("tr_id", "T" + Java.Lang.JavaSystem.CurrentTimeMillis());
+                values.Put("date", Java.Lang.JavaSystem.CurrentTimeMillis() / 1000);
+
+                var mmsUri = resolver.Insert(
+                    Android.Net.Uri.Parse("content://mms"),
+                    values);
+
+                if (mmsUri == null)
+                {
+                    _log.Error("Failed to insert MMS");
+                    return false;
+                }
+
+                var messageId = mmsUri.LastPathSegment;
+
+                // TO address
+                var addrValues = new ContentValues();
+                addrValues.Put("address", request.To);
+                addrValues.Put("type", 151);
+                addrValues.Put("charset", 106);
+
+                resolver.Insert(
+                    Android.Net.Uri.Parse($"content://mms/{messageId}/addr"),
+                    addrValues);
+
+                // TEXT PART
+                if (!string.IsNullOrWhiteSpace(request.Message))
+                {
+                    var textValues = new ContentValues();
+                    textValues.Put("mid", messageId);
+                    textValues.Put("ct", "text/plain");
+                    textValues.Put("cid", "<text>");
+                    textValues.Put("cl", "text_0.txt");
+                    textValues.Put("name", "text_0.txt");
+
+                    var textUri = resolver.Insert(
+                        Android.Net.Uri.Parse("content://mms/part"),
+                        textValues);
+
+                    if (textUri != null)
+                    {
+                        using var stream = resolver.OpenOutputStream(textUri);
+                        using var writer = new StreamWriter(stream);
+                        writer.Write(request.Message);
+                    }
+                }
+
+                // IMAGE PARTS
+                foreach (var b64 in request.ImageBase64)
+                {
+                    var raw = b64.Contains(",") ? b64.Split(',')[1] : b64;
+                    var bytes = Convert.FromBase64String(raw);
+
+                    var partValues = new ContentValues();
+                    partValues.Put("mid", messageId);
+                    partValues.Put("ct", "image/jpeg");
+                    partValues.Put("cid", "<image>");
+                    partValues.Put("cl", "image.jpg");
+                    partValues.Put("name", "image.jpg");
+
+                    var partUri = resolver.Insert(
+                        Android.Net.Uri.Parse("content://mms/part"),
+                        partValues);
+
+                    if (partUri != null)
+                    {
+                        using var stream = resolver.OpenOutputStream(partUri);
+                        await stream.WriteAsync(bytes);
+                    }
+                }
+
+                var sendIntent = new Intent("android.intent.action.SEND");
+                sendIntent.SetData(mmsUri);
+                context.SendBroadcast(sendIntent);
+
+                _log.Success($"MMS queued to {request.To}");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"MMS send error: {ex}");
+                return false;
+            }
+#else
+    return false;
+#endif
+        }
+
+        public async Task<bool> SendMmsAsync_v1(SendMmsRequest request)
+        {
+#if ANDROID
+            try
+            {
+                var context = Android.App.Application.Context;
+
+                // Collect all attachment bytes + mime types
+                var attachments = new List<(byte[] Data, string Mime, string Name)>();
+
+                foreach (var b64 in request.ImageBase64)
+                {
+                    var raw = b64.Contains(',') ? b64.Split(',')[1] : b64;
+                    var bytes = Convert.FromBase64String(raw);
+                    var mime = DetectMime(bytes);
+                    attachments.Add((bytes, mime, $"att_{attachments.Count}{MimeToExt(mime)}"));
+                }
+
+                foreach (var url in request.ImageUrls)
+                {
+                    var bytes = await _http.GetByteArrayAsync(url);
+                    var mime = DetectMime(bytes);
+                    attachments.Add((bytes, mime, $"att_{attachments.Count}{MimeToExt(mime)}"));
+                }
+
+                // Build the SMIL + MIME multipart PDU in memory
+                var pduBytes = BuildMmsPdu(request.To, request.Message, attachments);
+
+                // Write PDU to a file in cache so SmsManager can read it via URI
+                var cacheDir = context.CacheDir!.AbsolutePath;
+                var pduPath = Path.Combine(cacheDir, $"mms_{Guid.NewGuid():N}.mms");
+                await System.IO.File.WriteAllBytesAsync(pduPath, pduBytes);
+
+                // content:// URI via FileProvider — Uri.FromFile() crashes on Android 7+
+                var pduUri = AndroidX.Core.Content.FileProvider.GetUriForFile(
+                    context,
+                    context.PackageName + ".fileprovider",
+                    new Java.IO.File(pduPath));
+
+                // SendMultimediaMessage requires the app to be the default SMS app.
+                // It sends silently with no UI — exactly what a gateway needs.
+                var smsManager = Android.Telephony.SmsManager.Default!;
+                smsManager.SendMultimediaMessage(context, pduUri, null, null, null);
+
+                _log.Success($"MMS sent to {request.To} ({attachments.Count} attachment(s))");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Send MMS error: {ex.Message}");
+                return false;
+            }
+#else
+            _log.Warning("MMS sending only supported on Android");
+            return await Task.FromResult(false);
+#endif
+        }

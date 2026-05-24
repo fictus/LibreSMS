@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <!-- Speech bubble body -->
+  <rect x="68" y="90" width="320" height="210" rx="36" ry="36" fill="#ffffff"/>
+  <!-- Tail of speech bubble -->
+  <polygon points="130,300 90,366 196,300" fill="#ffffff"/>
+  <!-- Three dots inside bubble (chat/SMS indicator) -->
+  <circle cx="158" cy="198" r="22" fill="#1a1aff"/>
+  <circle cx="228" cy="198" r="22" fill="#1a1aff"/>
+  <circle cx="298" cy="198" r="22" fill="#1a1aff"/>
+</svg>

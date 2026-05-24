@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="LibreSMS.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Dark industrial theme -->
+            <Color x:Key="BgPrimary">#0D0D0F</Color>
+            <Color x:Key="BgSecondary">#1A1A1F</Color>
+            <Color x:Key="BgCard">#111116</Color>
+            <Color x:Key="AccentGreen">#00FF88</Color>
+            <Color x:Key="AccentRed">#FF3B5C</Color>
+            <Color x:Key="AccentAmber">#FFB800</Color>
+            <Color x:Key="AccentCyan">#00D4FF</Color>
+            <Color x:Key="TextPrimary">#F0F0F0</Color>
+            <Color x:Key="TextSecondary">#6B7280</Color>
+            <Color x:Key="Border">#2A2A30</Color>
+
+            <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
+                <Setter Property="BackgroundColor" Value="{StaticResource BgPrimary}" />
+            </Style>
+
+            <Style TargetType="NavigationPage">
+                <Setter Property="BarBackgroundColor" Value="{StaticResource BgSecondary}" />
+                <Setter Property="BarTextColor" Value="{StaticResource TextPrimary}" />
+            </Style>
+
+            <Style TargetType="Shell">
+                <Setter Property="Shell.BackgroundColor" Value="{StaticResource BgSecondary}" />
+                <Setter Property="Shell.ForegroundColor" Value="{StaticResource TextPrimary}" />
+                <Setter Property="Shell.TitleColor" Value="{StaticResource TextPrimary}" />
+                <Setter Property="Shell.DisabledColor" Value="{StaticResource TextSecondary}" />
+                <Setter Property="Shell.UnselectedColor" Value="{StaticResource TextSecondary}" />
+                <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource BgSecondary}" />
+                <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource AccentGreen}" />
+                <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource TextSecondary}" />
+                <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource AccentGreen}" />
+            </Style>
+
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                <Setter Property="FontFamily" Value="OpenSansRegular" />
+            </Style>
+
+            <Style x:Key="LabelSecondary" TargetType="Label">
+                <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+                <Setter Property="FontSize" Value="12" />
+            </Style>
+
+            <Style x:Key="LabelMono" TargetType="Label">
+                <Setter Property="FontFamily" Value="OpenSansRegular" />
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="TextColor" Value="{StaticResource AccentGreen}" />
+            </Style>
+
+            <Style TargetType="Entry">
+                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                <Setter Property="BackgroundColor" Value="{StaticResource BgSecondary}" />
+                <Setter Property="PlaceholderColor" Value="{StaticResource TextSecondary}" />
+            </Style>
+
+            <Style TargetType="Switch">
+                <Setter Property="OnColor" Value="{StaticResource AccentGreen}" />
+                <Setter Property="ThumbColor" Value="{StaticResource TextPrimary}" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

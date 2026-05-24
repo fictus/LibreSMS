@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="LibreSMS.Pages.TestPage"
+             Title="Test">
+
+    <ScrollView BackgroundColor="{StaticResource BgPrimary}">
+        <VerticalStackLayout Padding="20,16" Spacing="16">
+
+            <!-- Header -->
+            <HorizontalStackLayout Spacing="10">
+                <BoxView WidthRequest="4" HeightRequest="28" Color="{StaticResource AccentAmber}" CornerRadius="2"/>
+                <Label Text="TEST CONSOLE" FontSize="18" FontAttributes="Bold"
+                       TextColor="{StaticResource TextPrimary}" CharacterSpacing="2"
+                       VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+
+            <!-- Send SMS -->
+            <Border BackgroundColor="{StaticResource BgCard}" StrokeThickness="1" Padding="16">
+                <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="SEND SMS" FontSize="10" CharacterSpacing="3"
+                           TextColor="{StaticResource AccentGreen}"/>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="To (phone number)" FontSize="13"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Border StrokeThickness="1" Padding="0">
+                            <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                            <Border.StrokeShape><RoundRectangle CornerRadius="6"/></Border.StrokeShape>
+                            <Entry x:Name="SmsToEntry" Placeholder="+15551234567"
+                                   Keyboard="Telephone"
+                                   BackgroundColor="{StaticResource BgSecondary}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   PlaceholderColor="{StaticResource TextSecondary}"
+                                   FontSize="13"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Message" FontSize="13" TextColor="{StaticResource TextSecondary}"/>
+                        <Border StrokeThickness="1" Padding="0">
+                            <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                            <Border.StrokeShape><RoundRectangle CornerRadius="6"/></Border.StrokeShape>
+                            <Editor x:Name="SmsMessageEntry"
+                                    Placeholder="Type your test message..."
+                                    HeightRequest="80"
+                                    BackgroundColor="{StaticResource BgSecondary}"
+                                    TextColor="{StaticResource TextPrimary}"
+                                    PlaceholderColor="{StaticResource TextSecondary}"
+                                    FontSize="13" Margin="4"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <Button Text="SEND SMS"
+                            BackgroundColor="{StaticResource AccentGreen}"
+                            TextColor="Black" FontAttributes="Bold"
+                            FontSize="13" CharacterSpacing="1"
+                            HeightRequest="46" CornerRadius="6"
+                            Clicked="OnSendSmsClicked"/>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Send MMS -->
+            <Border BackgroundColor="{StaticResource BgCard}" StrokeThickness="1" Padding="16">
+                <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="SEND MMS" FontSize="10" CharacterSpacing="3"
+                           TextColor="{StaticResource AccentCyan}"/>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="To (phone number)" FontSize="13"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Border StrokeThickness="1" Padding="0">
+                            <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                            <Border.StrokeShape><RoundRectangle CornerRadius="6"/></Border.StrokeShape>
+                            <Entry x:Name="MmsToEntry" Placeholder="+15551234567"
+                                   Keyboard="Telephone"
+                                   BackgroundColor="{StaticResource BgSecondary}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   PlaceholderColor="{StaticResource TextSecondary}"
+                                   FontSize="13"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Message (optional)" FontSize="13"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Border StrokeThickness="1" Padding="0">
+                            <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                            <Border.StrokeShape><RoundRectangle CornerRadius="6"/></Border.StrokeShape>
+                            <Editor x:Name="MmsMessageEntry"
+                                    Placeholder="Optional message text..."
+                                    HeightRequest="60"
+                                    BackgroundColor="{StaticResource BgSecondary}"
+                                    TextColor="{StaticResource TextPrimary}"
+                                    PlaceholderColor="{StaticResource TextSecondary}"
+                                    FontSize="13" Margin="4"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Image URL (optional)" FontSize="13"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Border StrokeThickness="1" Padding="0">
+                            <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                            <Border.StrokeShape><RoundRectangle CornerRadius="6"/></Border.StrokeShape>
+                            <Entry x:Name="MmsImageUrlEntry"
+                                   Placeholder="https://example.com/image.jpg"
+                                   Keyboard="Url"
+                                   BackgroundColor="{StaticResource BgSecondary}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   PlaceholderColor="{StaticResource TextSecondary}"
+                                   FontSize="13"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <Button Text="SEND MMS"
+                            BackgroundColor="{StaticResource AccentCyan}"
+                            TextColor="Black" FontAttributes="Bold"
+                            FontSize="13" CharacterSpacing="1"
+                            HeightRequest="46" CornerRadius="6"
+                            Clicked="OnSendMmsClicked"/>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Webhook Test -->
+            <Border BackgroundColor="{StaticResource BgCard}" StrokeThickness="1" Padding="16">
+                <Border.Stroke><SolidColorBrush Color="{StaticResource Border}"/></Border.Stroke>
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="WEBHOOK TEST" FontSize="10" CharacterSpacing="3"
+                           TextColor="{StaticResource AccentAmber}"/>
+
+                    <Label Text="Fire a simulated incoming SMS to your configured webhook URL."
+                           FontSize="12" TextColor="{StaticResource TextSecondary}"/>
+
+                    <Button Text="FIRE TEST WEBHOOK"
+                            BackgroundColor="{StaticResource AccentAmber}"
+                            TextColor="Black" FontAttributes="Bold"
+                            FontSize="13" CharacterSpacing="1"
+                            HeightRequest="46" CornerRadius="6"
+                            Clicked="OnTestWebhookClicked"/>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Result -->
+            <Border x:Name="ResultBanner" IsVisible="False"
+                    StrokeThickness="1" Padding="14,10">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <HorizontalStackLayout Spacing="10">
+                    <Label x:Name="ResultIcon" Text="✔" FontSize="18" VerticalOptions="Center"/>
+                    <Label x:Name="ResultLabel" Text="" FontSize="13"
+                           VerticalOptions="Center" HorizontalOptions="FillAndExpand"/>
+                </HorizontalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
