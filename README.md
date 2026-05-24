@@ -38,7 +38,7 @@ Built with .NET MAUI, targeting Android.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourname/LibreSMS.git
+git clone https://github.com/fictus/LibreSMS.git
 cd LibreSMS
 ```
 
