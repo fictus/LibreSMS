@@ -82,7 +82,7 @@ The gateway listens on all network interfaces. Replace `<device-ip>` with your p
 ### Send SMS
 
 ```
-GET http://<device-ip>:8686/sendsms?to=+15551234567&message=Hello
+GET http://<device-ip>:8686/sendsms?to=15551234567&message=Hello
 ```
 
 | Parameter | Required | Description |
@@ -107,7 +107,7 @@ Also accepts `number` or `phone` as aliases for `to`, and `text` or `body` as al
 🚨 **MMS Known Issue and temporary workaround** - currently MMS messages will fail to send if the country code is pecified. To make it work remove the country code (Example, for US number **1**7120001111 you must pass it as 7120001111). Hopefully in the next version I can get around to fixing this.
 
 ```
-GET http://<device-ip>:8686/sendmms?to=+15551234567&message=Look+at+this&image_url=https://example.com/photo.jpg
+GET http://<device-ip>:8686/sendmms?to=15551234567&message=Look+at+this&image_url=https://example.com/photo.jpg
 ```
 
 | Parameter | Required | Description |
