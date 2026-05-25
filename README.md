@@ -104,6 +104,8 @@ Also accepts `number` or `phone` as aliases for `to`, and `text` or `body` as al
 
 ### Send MMS
 
+🚨 **MMS Known Issue and temporary workaround** - currently MMS messages will fail to send if the country code is pecified. To make it work remove the country code (Example, for US number **1**7120001111 you must pass it as 7120001111). Hopefully in the next version I can get around to fixing this.
+
 ```
 GET http://<device-ip>:8686/sendmms?to=+15551234567&message=Look+at+this&image_url=https://example.com/photo.jpg
 ```
