@@ -432,9 +432,10 @@ namespace LibreSMS.Services
             // To: EncodedStringValue = value-length { charset-short-int text-string }
             ms.WriteByte(0x97);
             {
-                var toStr = new string(to.Where(c => char.IsDigit(c) || c == '+').ToArray());
-                if (!toStr.StartsWith("+")) toStr = "+1" + toStr;
-                toStr += "/TYPE=PLMN";
+                var digitsOnly = new string(to.Where(char.IsDigit).ToArray());
+                if (digitsOnly.Length == 11 && digitsOnly.StartsWith("1"))
+                    digitsOnly = digitsOnly.Substring(1);
+                var toStr = digitsOnly + "/TYPE=PLMN";
                 var inner = new MemoryStream();
                 inner.WriteByte((byte)((106 | 0x80) & 0xFF)); // charset UTF-8
                 inner.Write(System.Text.Encoding.ASCII.GetBytes(toStr));
