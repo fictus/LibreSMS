@@ -33,24 +33,19 @@ Built with .NET MAUI, targeting Android.
 
 ---
 
-## Getting Started
+## Download .apk File
 
-### 1. Clone or Download
+- Get the latest release .apk from [HERE](https://github.com/fictus/LibreSMS/releases/)
+- Install it on your Android Phone
 
-#### Clone the repository
+## OR, Build it Yourself
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/fictus/LibreSMS.git
 cd LibreSMS
 ```
-
-(continue to step 2)
-
-#### Download
-
-Get the latest release .apk from [HERE](https://github.com/fictus/LibreSMS/releases/)
-
-(continue to step 4)
 
 ### 2. Open in Visual Studio
 
@@ -67,11 +62,13 @@ dotnet run --project LibreSMS/LibreSMS.csproj -f net10.0-android
 
 Or press **Run** in Visual Studio with your device selected as the target.
 
-### 4. Set LibreSMS as the default SMS app
+## Settings
+
+### 1. Set LibreSMS as the default SMS app
 
 The app will display a warning banner if it is not the default SMS app. Tap **SET AS DEFAULT** on the Dashboard or Controls tab. This is required to receive incoming SMS and MMS — without it, only outbound sending works.
 
-### 5. Configure and start
+### 2. Configure and start
 
 1. Go to the **Controls** tab
 2. Set your **Webhook URL** (the server that will receive incoming messages)
@@ -126,6 +123,14 @@ GET/POST http://<device-ip>:8686/sendmms?to=+15551234567&message=Look+at+this&im
 | `image_url` | No | Single image URL (downloaded by the device) |
 | `image_0` … `image_9` | No | Multiple images as base64 |
 | `image_url_0` … `image_url_9` | No | Multiple image URLs |
+
+**Example response:**
+```json
+{
+  "success": true,
+  "message": "SMS sent to +15551234567"
+}
+```
 
 ---
 
