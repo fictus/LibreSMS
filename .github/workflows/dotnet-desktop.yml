@@ -1,0 +1,34 @@
+name: Build & Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'   # triggers on tags like v1.0.0, v1.2.3, etc.
+  workflow_dispatch:   # adds a manual "Run workflow" button in GitHub Actions tab
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Restore dependencies
+        run: dotnet restore LibreSMS/LibreSMS.csproj
+
+      - name: Build & publish APK
+        run: dotnet publish LibreSMS/LibreSMS.csproj -f net10.0-android -c Release
+
+      - name: Upload APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: '**/bin/Release/net10.0-android/publish/*.apk'
