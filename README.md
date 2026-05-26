@@ -35,12 +35,22 @@ Built with .NET MAUI, targeting Android.
 
 ## Getting Started
 
-### 1. Clone the repository
+### 1. Clone or Download
+
+#### Clone the repository
 
 ```bash
 git clone https://github.com/fictus/LibreSMS.git
 cd LibreSMS
 ```
+
+(continue to step 2)
+
+#### Download
+
+Get the latest release .apk from [HERE](https://github.com/fictus/LibreSMS/releases/)
+
+(continue to step 4)
 
 ### 2. Open in Visual Studio
 
