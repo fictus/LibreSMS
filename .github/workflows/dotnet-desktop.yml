@@ -3,8 +3,11 @@ name: Build & Release APK
 on:
   push:
     tags:
-      - 'v*'   # triggers on tags like v1.0.0, v1.2.3, etc.
-  workflow_dispatch:   # adds a manual "Run workflow" button in GitHub Actions tab
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # fixes Node.js warning
 
 jobs:
   build:
@@ -12,15 +15,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2         # pinned for Node 24 support
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v4.3.1     # pinned for Node 24 support
         with:
           dotnet-version: '10.0.x'
 
       - name: Install MAUI Android workload
-        run: dotnet workload install maui-android
+        run: dotnet workload install android --skip-manifest-update
 
       - name: Restore dependencies
         run: dotnet restore LibreSMS/LibreSMS.csproj
