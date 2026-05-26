@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest   # switch to Linux — avoids Windows MAUI workload issues
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -22,7 +22,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Install Android workload
+      - name: Install MAUI Android workload
         run: dotnet workload install maui-android
 
       - name: Restore dependencies
@@ -31,7 +31,15 @@ jobs:
       - name: Build & publish APK
         run: dotnet publish LibreSMS/LibreSMS.csproj -f net10.0-android -c Release
 
-      - name: Upload APK to GitHub Release
+      - name: Upload APK as artifact (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: LibreSMS-debug
+          path: '**/bin/Release/net10.0-android/publish/*.apk'
+
+      - name: Upload APK to GitHub Release (tag runs)
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           files: '**/bin/Release/net10.0-android/publish/*.apk'
