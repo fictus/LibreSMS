@@ -23,7 +23,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Install Android workload
-        run: dotnet workload install android
+        run: dotnet workload install maui-android
 
       - name: Restore dependencies
         run: dotnet restore LibreSMS/LibreSMS.csproj -p:TargetFrameworks=net10.0-android
