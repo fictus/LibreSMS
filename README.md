@@ -8,18 +8,46 @@ Built with .NET MAUI, targeting Android.
 
 ---
 
-<a href="images/libre-sms-1.png" target="_blank">
-  <img src="images/libre-sms-1.png" width="150">
-</a>
-<a href="images/libre-sms-2.png" target="_blank">
-  <img src="images/libre-sms-2.png" width="150">
-</a>
-<a href="images/libre-sms-3.png" target="_blank">
-  <img src="images/libre-sms-3.png" width="150">
-</a>
-<a href="images/libre-sms-4.png" target="_blank">
-  <img src="images/libre-sms-4.png" width="150">
-</a>
+<table>
+  <tr>
+    <td>
+      <details>
+        <summary>
+          <img src="images/libre-sms-1.png" width="150">
+        </summary>
+        <br>
+        <img src="images/libre-sms-1.png">
+      </details>
+    </td>
+    <td>
+      <details>
+        <summary>
+          <img src="images/libre-sms-2.png" width="150">
+        </summary>
+        <br>
+        <img src="images/libre-sms-2.png">
+      </details>
+    </td>
+    <td>
+      <details>
+        <summary>
+          <img src="images/libre-sms-3.png" width="150">
+        </summary>
+        <br>
+        <img src="images/libre-sms-3.png">
+      </details>
+    </td>
+    <td>
+      <details>
+        <summary>
+          <img src="images/libre-sms-4.png" width="150">
+        </summary>
+        <br>
+        <img src="images/libre-sms-4.png">
+      </details>
+    </td>
+  </tr>
+</table>
 
 ## Features
 
