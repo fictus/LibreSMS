@@ -8,6 +8,8 @@ Built with .NET MAUI, targeting Android.
 
 ---
 
+![Screenshot](images/libre-sms-1.png) ![Screenshot](images/libre-sms-2.png) ![Screenshot](images/libre-sms-3.png) ![Screenshot](images/libre-sms-4.png)
+
 ## Features
 
 - **Send SMS** via HTTP GET or POST from any device on your network
