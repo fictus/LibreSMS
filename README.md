@@ -8,46 +8,7 @@ Built with .NET MAUI, targeting Android.
 
 ---
 
-<table>
-  <tr>
-    <td>
-      <details>
-        <summary>
-          <img src="images/libre-sms-1.png" width="150">
-        </summary>
-        <br>
-        <img src="images/libre-sms-1.png">
-      </details>
-    </td>
-    <td>
-      <details>
-        <summary>
-          <img src="images/libre-sms-2.png" width="150">
-        </summary>
-        <br>
-        <img src="images/libre-sms-2.png">
-      </details>
-    </td>
-    <td>
-      <details>
-        <summary>
-          <img src="images/libre-sms-3.png" width="150">
-        </summary>
-        <br>
-        <img src="images/libre-sms-3.png">
-      </details>
-    </td>
-    <td>
-      <details>
-        <summary>
-          <img src="images/libre-sms-4.png" width="150">
-        </summary>
-        <br>
-        <img src="images/libre-sms-4.png">
-      </details>
-    </td>
-  </tr>
-</table>
+<img src="images/libre-sms-1.png" width="150"> <img src="images/libre-sms-2.png" width="150"> <img src="images/libre-sms-3.png" width="150"> <img src="images/libre-sms-4.png" width="150">
 
 ## Features
 
