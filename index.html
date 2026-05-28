@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>LibreSMS — Self-Hosted SMS/MMS Gateway for Android</title>
+  <meta name="description" content="Turn your Android phone into a self-hosted SMS/MMS gateway. Send and receive messages via a simple REST API — no third-party services, no subscriptions. Free & open source." />
+  <meta name="keywords" content="SMS gateway, MMS gateway, self-hosted SMS, Android SMS server, REST API SMS, open source SMS, LibreSMS, .NET MAUI SMS, local SMS server, webhook SMS" />
+  <meta name="author" content="fictus" />
+  <link rel="canonical" href="https://fictus.github.io/LibreSMS/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://fictus.github.io/LibreSMS/" />
+  <meta property="og:title" content="LibreSMS — Self-Hosted SMS/MMS Gateway for Android" />
+  <meta property="og:description" content="Turn your Android phone into a self-hosted SMS/MMS gateway. Send and receive messages via a simple REST API — no third-party services, no subscriptions." />
+  <meta property="og:image" content="https://fictus.github.io/LibreSMS/og-image.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="LibreSMS — Self-Hosted SMS/MMS Gateway for Android" />
+  <meta name="twitter:description" content="Turn your Android phone into a self-hosted SMS/MMS gateway. Free, open source, no subscriptions." />
+  <meta name="twitter:image" content="https://fictus.github.io/LibreSMS/og-image.png" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "LibreSMS",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Android",
+    "description": "Turn your Android phone into a self-hosted SMS/MMS gateway with a REST API. No third-party services, no subscriptions.",
+    "url": "https://fictus.github.io/LibreSMS/",
+    "downloadUrl": "https://github.com/fictus/LibreSMS",
+    "author": {
+      "@type": "Person",
+      "name": "fictus",
+      "url": "https://github.com/fictus"
+    },
+    "license": "https://opensource.org/licenses/MIT",
+    "codeRepository": "https://github.com/fictus/LibreSMS",
+    "programmingLanguage": "C#",
+    "softwareRequirements": "Android API 21+, .NET 10 SDK"
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0a0c0f;
+      --surface: #111418;
+      --border: #1e2530;
+      --border-bright: #2e3a48;
+      --accent: #00e5a0;
+      --accent2: #0af;
+      --accent-dim: rgba(0,229,160,0.12);
+      --text: #d8e4f0;
+      --muted: #6a7f96;
+      --mono: 'Space Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* GRID BACKGROUND */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 60px;
+      background: rgba(10,12,15,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    .nav-cta {
+      background: var(--accent);
+      color: #000 !important;
+      padding: 0.4rem 1rem;
+      border-radius: 3px;
+      font-weight: 700 !important;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(0,229,160,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,229,160,0.3);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 2px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-family: var(--sans);
+      font-weight: 800;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .hero h1 span {
+      color: var(--accent);
+      display: inline-block;
+    }
+
+    .hero h1 .dim { color: var(--muted); }
+
+    .hero-sub {
+      max-width: 600px;
+      font-size: 1.15rem;
+      color: var(--muted);
+      margin-bottom: 3rem;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.8rem 1.8rem;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover {
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,229,160,0.25);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border-bright);
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .hero-terminal {
+      margin-top: 4rem;
+      width: 100%;
+      max-width: 620px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: var(--border);
+    }
+
+    .terminal-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .td1 { background: #ff5f57; }
+    .td2 { background: #febc2e; }
+    .td3 { background: #28c840; }
+
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .terminal-body {
+      padding: 1.25rem 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.9;
+      text-align: left;
+    }
+
+    .t-prompt { color: var(--accent); }
+    .t-cmd { color: var(--text); }
+    .t-out { color: var(--muted); }
+    .t-green { color: var(--accent); }
+    .t-blue { color: var(--accent2); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── FEATURES ── */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 6rem 2rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      line-height: 1.1;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      max-width: 540px;
+      margin-bottom: 3.5rem;
+    }
+
+    /* Feature grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      padding: 2rem;
+      transition: background 0.2s;
+    }
+
+    .feature-card:hover { background: #141a22; }
+
+    .feature-icon {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── API SECTION ── */
+    .api-section {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .api-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+
+    @media (max-width: 720px) {
+      .api-grid { grid-template-columns: 1fr; }
+    }
+
+    .endpoint-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .endpoint {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      transition: border-color 0.2s;
+    }
+
+    .endpoint:hover { border-color: var(--accent); }
+
+    .method {
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 40px;
+      font-size: 0.72rem;
+    }
+
+    .method.post { color: var(--accent2); }
+
+    .path { color: var(--text); flex: 1; }
+    .ep-desc { color: var(--muted); font-size: 0.72rem; white-space: nowrap; }
+
+    /* Code block */
+    .code-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      padding: 0.6rem 1rem;
+      background: var(--border);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-body {
+      padding: 1.25rem 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+
+    .ck { color: var(--muted); }
+    .cv { color: #e6c37a; }
+    .cs { color: var(--accent); }
+    .cn { color: var(--accent2); }
+
+    /* ── INSTALL ── */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      counter-reset: steps;
+    }
+
+    .step {
+      background: var(--surface);
+      padding: 1.75rem 2rem;
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+      counter-increment: steps;
+      transition: background 0.2s;
+    }
+
+    .step:hover { background: #141a22; }
+
+    .step-num {
+      width: 40px; height: 40px;
+      border: 1px solid var(--border-bright);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .step h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .step p {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    code {
+      font-family: var(--mono);
+      background: var(--border);
+      padding: 0.1em 0.4em;
+      border-radius: 3px;
+      font-size: 0.88em;
+      color: var(--accent);
+    }
+
+    /* ── PERMISSIONS ── */
+    .perms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .perm-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .perm-chip:hover {
+      border-color: var(--border-bright);
+      color: var(--text);
+    }
+
+    .perm-chip strong {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+      font-size: 0.72rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      z-index: 1;
+      position: relative;
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-tagline {
+      color: var(--muted);
+      font-size: 0.875rem;
+      margin-bottom: 2rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--accent); }
+
+    .footer-copy {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-family: var(--mono);
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .nav-links { display: none; }
+      .hero { padding: 5rem 1.25rem 3rem; }
+      section { padding: 4rem 1.25rem; }
+    }
+
+    /* scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">LibreSMS</a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="https://github.com/fictus/LibreSMS" class="nav-cta">GitHub →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Open Source · MIT License · .NET MAUI · Android</div>
+  <h1>Your phone.<br><span>Your gateway.</span><br><span class="dim">No middleman.</span></h1>
+  <p class="hero-sub">LibreSMS turns any Android device into a self-hosted SMS/MMS gateway with a simple REST API. No SIM proxies, no subscriptions, no third-party services.</p>
+  <div class="hero-actions">
+    <a href="https://github.com/fictus/LibreSMS" class="btn btn-primary">
+      ⬇ Download on GitHub
+    </a>
+    <a href="#api" class="btn btn-secondary">
+      Explore the API
+    </a>
+  </div>
+
+  <div class="hero-terminal">
+    <div class="terminal-bar">
+      <div class="terminal-dot td1"></div>
+      <div class="terminal-dot td2"></div>
+      <div class="terminal-dot td3"></div>
+      <div class="terminal-title">libresms — gateway running on :8686</div>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-prompt">$ </span><span class="t-cmd">curl "http://192.168.1.42:8686/sendsms?to=+15551234567&message=Hello"</span></div>
+      <div class="t-out">{</div>
+      <div class="t-out">&nbsp;&nbsp;<span class="t-green">"success"</span>: true,</div>
+      <div class="t-out">&nbsp;&nbsp;<span class="t-blue">"message"</span>: "SMS sent to +15551234567"</div>
+      <div class="t-out">}</div>
+      <div style="margin-top:0.5rem"><span class="t-prompt">$ </span><span class="t-cmd">curl "http://192.168.1.42:8686/health"</span></div>
+      <div class="t-out">{ <span class="t-green">"success"</span>: true, <span class="t-blue">"message"</span>: "OK" }</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">// capabilities</div>
+      <h2 class="section-title">Everything you need.<br>Nothing you don't.</h2>
+      <p class="section-sub">Built with .NET MAUI for Android. Runs a local HTTP server on your device and stays alive in the background.</p>
+    </div>
+
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <div class="feature-icon">📤</div>
+        <h3>Send SMS &amp; MMS</h3>
+        <p>Fire messages via HTTP GET or POST from any device on your network. MMS supports multiple images as base64 or URL.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📥</div>
+        <h3>Real-time Webhooks</h3>
+        <p>Incoming SMS/MMS are forwarded instantly to your configured webhook URL, including full attachment data for MMS.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📬</div>
+        <h3>Read Inbox via API</h3>
+        <p>Query unread messages from the device inbox at any time through the <code>/getmessages</code> endpoint.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Webhook Secrets</h3>
+        <p>Authenticate deliveries with a shared secret token. Your server can reject unauthorized webhook calls.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Foreground Service</h3>
+        <p>A persistent foreground service with wake lock keeps the gateway alive even with the screen off.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3>Auto-start on Boot</h3>
+        <p>Optionally start the gateway automatically every time the device powers on. Always available.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🖥</div>
+        <h3>Live Dashboard</h3>
+        <p>Monitor message stats, uptime, sent/received counts, and all endpoint URLs from the in-app dashboard.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧪</div>
+        <h3>Built-in Test Console</h3>
+        <p>Send real messages and fire test webhooks directly from within the app — no external tooling required.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- API REFERENCE -->
+<section id="api" class="api-section">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">// http api</div>
+      <h2 class="section-title">Simple REST endpoints.<br>Works from anywhere.</h2>
+      <p class="section-sub">All endpoints accept GET and POST. POST supports JSON body or URL-encoded form data.</p>
+    </div>
+
+    <div class="api-grid">
+      <div class="endpoint-list reveal">
+        <div class="endpoint">
+          <span class="method">GET</span>
+          <span class="path">/sendsms</span>
+          <span class="ep-desc">Send an SMS</span>
+        </div>
+        <div class="endpoint">
+          <span class="method">GET</span>
+          <span class="path">/sendmms</span>
+          <span class="ep-desc">Send MMS with images</span>
+        </div>
+        <div class="endpoint">
+          <span class="method">GET</span>
+          <span class="path">/getmessages</span>
+          <span class="ep-desc">Read unread inbox</span>
+        </div>
+        <div class="endpoint">
+          <span class="method">GET</span>
+          <span class="path">/status</span>
+          <span class="ep-desc">Gateway status &amp; stats</span>
+        </div>
+        <div class="endpoint">
+          <span class="method">GET</span>
+          <span class="path">/health</span>
+          <span class="ep-desc">Health check</span>
+        </div>
+      </div>
+
+      <div class="code-block reveal">
+        <div class="code-header">
+          <span>Example — send MMS with image URL</span>
+          <span>HTTP</span>
+        </div>
+        <div class="code-body">
+<span class="ck">GET </span><span class="cs">http://</span><span class="cv">&lt;device-ip&gt;</span><span class="cs">:8686/sendmms</span><br>
+&nbsp;&nbsp;<span class="ck">?</span><span class="cn">to</span>=<span class="cs">+15551234567</span><br>
+&nbsp;&nbsp;<span class="ck">&amp;</span><span class="cn">message</span>=<span class="cs">Look+at+this</span><br>
+&nbsp;&nbsp;<span class="ck">&amp;</span><span class="cn">image_url</span>=<span class="cs">https://example.com/photo.jpg</span><br>
+<br>
+<span class="ck">// Response</span><br>
+{<br>
+&nbsp;&nbsp;<span class="cn">"success"</span>: <span class="cs">true</span>,<br>
+&nbsp;&nbsp;<span class="cn">"message"</span>: <span class="cs">"MMS sent to +15551234567"</span><br>
+}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">// getting started</div>
+	  <div class="section-label">
+		<a href="https://github.com/fictus/LibreSMS" class="btn btn-primary">
+		  Download the .APK
+		</a>
+		</div>
+      <h2 class="section-title">Up in four steps.</h2>
+      <p class="section-sub">Requires an Android device with an active SIM, .NET 10 SDK, and Visual Studio 2026 with the MAUI workload.</p>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div>
+          <h3>Clone the repository</h3>
+          <p><code>git clone https://github.com/fictus/LibreSMS.git</code> then open <code>LibreSMS.sln</code> in Visual Studio. Install the MAUI workload if prompted.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div>
+          <h3>Build &amp; deploy to your Android device</h3>
+          <p>Connect your device via USB with developer mode and USB debugging enabled. Press <strong>Run</strong> in Visual Studio or use <code>dotnet run --project LibreSMS/LibreSMS.csproj -f net10.0-android</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div>
+          <h3>Set LibreSMS as default SMS app</h3>
+          <p>Required to receive incoming messages. Tap <strong>SET AS DEFAULT</strong> on the Dashboard tab. Without this, only outbound sending works.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div>
+          <h3>Configure and start the gateway</h3>
+          <p>Set your <strong>Webhook URL</strong> and listen port (default <code>8686</code>) in the Controls tab. Tap <strong>START GATEWAY</strong> — the status dot turns green when ready.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERMISSIONS -->
+<section>
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">// android permissions</div>
+      <h2 class="section-title">Transparent by design.</h2>
+      <p class="section-sub">LibreSMS requests only the permissions it genuinely needs to operate as an SMS gateway.</p>
+    </div>
+
+    <div class="perms-grid reveal">
+      <div class="perm-chip"><strong>SEND_SMS</strong>Send outbound SMS</div>
+      <div class="perm-chip"><strong>RECEIVE_SMS</strong>Receive incoming SMS</div>
+      <div class="perm-chip"><strong>READ_SMS</strong>Read message inbox</div>
+      <div class="perm-chip"><strong>RECEIVE_MMS</strong>Receive incoming MMS</div>
+      <div class="perm-chip"><strong>INTERNET</strong>HTTP server &amp; webhooks</div>
+      <div class="perm-chip"><strong>FOREGROUND_SERVICE</strong>Keep gateway alive</div>
+      <div class="perm-chip"><strong>RECEIVE_BOOT_COMPLETED</strong>Auto-start on boot</div>
+      <div class="perm-chip"><strong>WAKE_LOCK</strong>Prevent CPU sleep</div>
+      <div class="perm-chip"><strong>READ_PHONE_STATE</strong>Detect SIM &amp; device number</div>
+      <div class="perm-chip"><strong>WRITE_SMS</strong>OEM default app compat</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">LibreSMS</div>
+  <p class="footer-tagline">Free, open source, self-hosted SMS/MMS gateway for Android.</p>
+  <div class="footer-links">
+    <a href="https://github.com/fictus/LibreSMS">GitHub</a>
+    <a href="https://github.com/fictus/LibreSMS/blob/main/README.md">Documentation</a>
+    <a href="https://github.com/fictus/LibreSMS/issues">Issues</a>
+    <a href="https://github.com/fictus/LibreSMS/blob/main/LICENSE">MIT License</a>
+  </div>
+  <p class="footer-copy">© 2026 fictus · MIT License</p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const els = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        // stagger children
+        e.target.querySelectorAll('.feature-card, .step, .endpoint, .perm-chip').forEach((c, i) => {
+          c.style.transitionDelay = (i * 0.05) + 's';
+          c.style.opacity = '0';
+          c.style.transform = 'translateY(20px)';
+          c.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+          setTimeout(() => {
+            c.style.opacity = '1';
+            c.style.transform = 'none';
+          }, 100 + i * 60);
+        });
+      }
+    });
+  }, { threshold: 0.1 });
+
+  els.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
