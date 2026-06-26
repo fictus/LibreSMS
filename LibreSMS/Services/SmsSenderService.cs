@@ -40,19 +40,47 @@ namespace LibreSMS.Services
                     return false;
                 }
 
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var action = "com.libresms.SMS_SENT_" + Guid.NewGuid().ToString("N")[..8];
+
+                var context = Android.App.Application.Context;
+                var sentIntent = Android.App.PendingIntent.GetBroadcast(
+                    context,
+                    0,
+                    new Android.Content.Intent(action),
+                    Android.App.PendingIntentFlags.Immutable);
+
+                // Register a one-shot receiver for this send attempt
+                var receiver = new SmsSentReceiver(tcs, _log, to);
+                Android.Content.IntentFilter filter = new(action);
+                context.RegisterReceiver(receiver, filter);
+
                 var parts = smsManager.DivideMessage(message);
 
                 if (parts == null || parts.Count == 1)
                 {
-                    smsManager.SendTextMessage(to, null, message, null, null);
+                    smsManager.SendTextMessage(to, null, message, sentIntent, null);
                 }
                 else
                 {
-                    smsManager.SendMultipartTextMessage(to, null, parts, null, null);
+                    var sentIntents = new List<Android.App.PendingIntent?>();
+                    for (int i = 0; i < parts.Count; i++)
+                        sentIntents.Add(i == parts.Count - 1 ? sentIntent : null);
+
+                    smsManager.SendMultipartTextMessage(to, null, parts, sentIntents, null);
                 }
 
-                _log.Success($"SMS sent to {to}");
-                return true;
+                // Wait up to 30 seconds for the modem to confirm
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                using var reg = cts.Token.Register(() => tcs.TrySetResult(false));
+
+                var success = await tcs.Task;
+                context.UnregisterReceiver(receiver);
+
+                if (success) _log.Success($"SMS sent to {to}");
+                else _log.Error($"SMS send failed (modem rejected) to {to}");
+
+                return success;
             }
             catch (Exception ex)
             {
@@ -713,6 +741,30 @@ namespace LibreSMS.Services
                 // For .NET HttpClient on Android, we rely on the proxy routing +
                 // the fact that the MMSC is only reachable via mobile data anyway.
                 return await base.SendAsync(request, cancellationToken);
+            }
+        }
+#endif
+
+#if ANDROID
+        private class SmsSentReceiver : Android.Content.BroadcastReceiver
+        {
+            private readonly TaskCompletionSource<bool> _tcs;
+            private readonly GatewayLogService _log;
+            private readonly string _to;
+
+            public SmsSentReceiver(TaskCompletionSource<bool> tcs, GatewayLogService log, string to)
+            {
+                _tcs = tcs;
+                _log = log;
+                _to = to;
+            }
+
+            public override void OnReceive(Android.Content.Context? context, Android.Content.Intent? intent)
+            {
+                bool ok = ResultCode == Android.App.Result.Ok;
+                if (!ok)
+                    _log.Warning($"SMS modem error to {_to}: ResultCode={ResultCode}");
+                _tcs.TrySetResult(ok);
             }
         }
 #endif
