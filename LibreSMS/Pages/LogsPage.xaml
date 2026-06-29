@@ -99,7 +99,7 @@
                        VerticalOptions="Center"/>
                 <Label Text="LIVE" FontSize="10" CharacterSpacing="2"
                        TextColor="{StaticResource TextSecondary}" VerticalOptions="Center"/>
-                <Label Text="| Last 500 entries" FontSize="10"
+                <Label Text="| Last 100 entries" FontSize="10"
                        TextColor="{StaticResource TextSecondary}" VerticalOptions="Center"/>
             </HorizontalStackLayout>
         </Border>

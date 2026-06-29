@@ -17,7 +17,7 @@ namespace LibreSMS.Services
         public event EventHandler<LogEntry>? LogAdded;
 
         private readonly SemaphoreSlim _lock = new(1, 1);
-        private const int MaxLogs = 500;
+        private const int MaxLogs = 100;
 
         public void Log(string message, string level = "INFO")
         {
