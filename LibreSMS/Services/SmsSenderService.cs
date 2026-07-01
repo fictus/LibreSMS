@@ -25,6 +25,7 @@ namespace LibreSMS.Services
     public class SmsSenderService
     {
         private readonly GatewayLogService _log = GatewayLogService.Instance;
+        private static readonly SemaphoreSlim _smsSemaphore = new SemaphoreSlim(1, 1);
 
         // ─────────────────────────────────────────────────────────────────────
         // SMS
@@ -33,6 +34,7 @@ namespace LibreSMS.Services
         public async Task<bool> SendSmsAsync(string to, string message)
         {
 #if ANDROID
+            await _smsSemaphore.WaitAsync();
             try
             {
                 var smsManager = Android.Telephony.SmsManager.Default;
@@ -42,110 +44,36 @@ namespace LibreSMS.Services
                     return false;
                 }
 
-                SendSmsMessageSimple(to, message, smsManager);                
-                await Task.Delay(3000); // Give the modem time to hand off to the radio and write to Sent                
-                bool confirmed = CheckSentFolder(to, message); // Verify it actually landed in the Sent folder
-
-                // retry one more time
-                if (!confirmed)
+                var parts = smsManager.DivideMessage(message);
+                if (parts == null || parts.Count == 1)
                 {
-                    SendSmsMessageSimple(to, message, smsManager);
-                    await Task.Delay(3000); // Give the modem time to hand off to the radio and write to Sent                
-                    confirmed = CheckSentFolder(to, message); // Verify it actually landed in the Sent folder
-                }
-
-                if (confirmed)
-                {
-                    _log.Success($"SMS sent to {to}");
+                    smsManager.SendTextMessage(to, null, message, null, null);
                 }
                 else
                 {
-                    _log.Warning($"SMS not found in Sent folder for {to} — possible failure");
+                    smsManager.SendMultipartTextMessage(to, null, parts, null, null);
                 }
 
-                return confirmed;
+                // Throttle — give the modem ~1 second per message before next send
+                await Task.Delay(1000);
+
+                _log.Success($"SMS sent to {to}");
+                return true;
             }
             catch (Exception ex)
             {
                 _log.Error($"Send SMS error: {ex.Message}");
                 return false;
             }
+            finally
+            {
+                _smsSemaphore.Release();
+            }
 #else
     _log.Warning("SMS sending only supported on Android");
     return await Task.FromResult(false);
 #endif
         }
-
-#if ANDROID
-        private void SendSmsMessageSimple(string to, string message, Android.Telephony.SmsManager smsManager)
-        {
-            var parts = smsManager.DivideMessage(message);
-            if (parts == null || parts.Count == 1)
-            {
-                smsManager.SendTextMessage(to, null, message, null, null);
-            }
-            else
-            {
-                smsManager.SendMultipartTextMessage(to, null, parts, null, null);
-            }
-        }
-
-        private bool CheckSentFolder(string to, string message)
-        {
-            try
-            {
-                var context = Android.App.Application.Context;
-                var uri = Android.Net.Uri.Parse("content://sms/sent");
-
-                // Normalize the number — strip everything except digits
-                var normalizedTo = new string(to.Where(char.IsDigit).ToArray());
-
-                // Only look at messages sent in the last 60 seconds
-                long cutoff = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - 60_000;
-
-                // Grab the first 20 chars of the message to match on
-                // (the full body may be truncated in the content provider on some ROMs)
-                var messageSnippet = message.Length > 20 ? message[..20] : message;
-
-                var cursor = context.ContentResolver?.Query(
-                    uri,
-                    new[] { "address", "body", "date" },
-                    "date > ?",
-                    new[] { cutoff.ToString() },
-                    "date DESC");
-
-                if (cursor == null) return false;
-
-                while (cursor.MoveToNext())
-                {
-                    var address = cursor.GetString(0) ?? "";
-                    var body = cursor.GetString(1) ?? "";
-
-                    var normalizedAddress = new string(address.Where(char.IsDigit).ToArray());
-
-                    bool numberMatch = normalizedAddress.EndsWith(normalizedTo)
-                                     || normalizedTo.EndsWith(normalizedAddress);
-                    bool messageMatch = body.Contains(messageSnippet,
-                                            StringComparison.OrdinalIgnoreCase);
-
-                    if (numberMatch && messageMatch)
-                    {
-                        cursor.Close();
-                        return true;
-                    }
-                }
-
-                cursor.Close();
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _log.Warning($"Sent folder check failed: {ex.Message}");
-                // Don't penalize — if the content provider is unavailable, assume ok
-                return true;
-            }
-        }
-#endif
 
         // ─────────────────────────────────────────────────────────────────────
         // MMS
@@ -185,6 +113,8 @@ namespace LibreSMS.Services
         public async Task<bool> SendMmsAsync(SendMmsRequest request)
         {
 #if ANDROID
+            await _smsSemaphore.WaitAsync();
+
             Android.Net.ConnectivityManager? cm = null;
             System.Threading.CancellationTokenSource? cts = null;
 
@@ -254,6 +184,9 @@ namespace LibreSMS.Services
                 if (success) _log.Success($"MMS sent to {request.To} ({attachments.Count} attachment(s))");
                 else _log.Error("MMSC POST failed");
 
+                // Throttle — give the modem ~1 second per message before next send
+                await Task.Delay(1000);
+
                 return success;
             }
             catch (Exception ex)
@@ -272,6 +205,8 @@ namespace LibreSMS.Services
                 }
                 catch { }
                 _mmsNetworkCallback = null;
+
+                _smsSemaphore.Release();
             }
 #else
     _log.Warning("MMS sending only supported on Android");
