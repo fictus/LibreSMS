@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using LibreSMS.Models;
 using LibreSMS.Services;
 using System.Net;
+using Android.Telephony.Gsm;
+
 
 #if ANDROID
 using Android.App;
@@ -40,47 +42,28 @@ namespace LibreSMS.Services
                     return false;
                 }
 
-                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var action = "com.libresms.SMS_SENT_" + Guid.NewGuid().ToString("N")[..8];
+                SendSmsMessageSimple(to, message, smsManager);                
+                await Task.Delay(3000); // Give the modem time to hand off to the radio and write to Sent                
+                bool confirmed = CheckSentFolder(to, message); // Verify it actually landed in the Sent folder
 
-                var context = Android.App.Application.Context;
-                var sentIntent = Android.App.PendingIntent.GetBroadcast(
-                    context,
-                    0,
-                    new Android.Content.Intent(action),
-                    Android.App.PendingIntentFlags.Immutable);
-
-                // Register a one-shot receiver for this send attempt
-                var receiver = new SmsSentReceiver(tcs, _log, to);
-                Android.Content.IntentFilter filter = new(action);
-                context.RegisterReceiver(receiver, filter);
-
-                var parts = smsManager.DivideMessage(message);
-
-                if (parts == null || parts.Count == 1)
+                // retry one more time
+                if (!confirmed)
                 {
-                    smsManager.SendTextMessage(to, null, message, sentIntent, null);
+                    SendSmsMessageSimple(to, message, smsManager);
+                    await Task.Delay(3000); // Give the modem time to hand off to the radio and write to Sent                
+                    confirmed = CheckSentFolder(to, message); // Verify it actually landed in the Sent folder
+                }
+
+                if (confirmed)
+                {
+                    _log.Success($"SMS sent to {to}");
                 }
                 else
                 {
-                    var sentIntents = new List<Android.App.PendingIntent?>();
-                    for (int i = 0; i < parts.Count; i++)
-                        sentIntents.Add(i == parts.Count - 1 ? sentIntent : null);
-
-                    smsManager.SendMultipartTextMessage(to, null, parts, sentIntents, null);
+                    _log.Warning($"SMS not found in Sent folder for {to} — possible failure");
                 }
 
-                // Wait up to 30 seconds for the modem to confirm
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-                using var reg = cts.Token.Register(() => tcs.TrySetResult(false));
-
-                var success = await tcs.Task;
-                context.UnregisterReceiver(receiver);
-
-                if (success) _log.Success($"SMS sent to {to}");
-                else _log.Error($"SMS send failed (modem rejected) to {to}");
-
-                return success;
+                return confirmed;
             }
             catch (Exception ex)
             {
@@ -88,10 +71,81 @@ namespace LibreSMS.Services
                 return false;
             }
 #else
-            _log.Warning("SMS sending only supported on Android");
-            return await Task.FromResult(false);
+    _log.Warning("SMS sending only supported on Android");
+    return await Task.FromResult(false);
 #endif
         }
+
+#if ANDROID
+        private void SendSmsMessageSimple(string to, string message, Android.Telephony.SmsManager smsManager)
+        {
+            var parts = smsManager.DivideMessage(message);
+            if (parts == null || parts.Count == 1)
+            {
+                smsManager.SendTextMessage(to, null, message, null, null);
+            }
+            else
+            {
+                smsManager.SendMultipartTextMessage(to, null, parts, null, null);
+            }
+        }
+
+        private bool CheckSentFolder(string to, string message)
+        {
+            try
+            {
+                var context = Android.App.Application.Context;
+                var uri = Android.Net.Uri.Parse("content://sms/sent");
+
+                // Normalize the number — strip everything except digits
+                var normalizedTo = new string(to.Where(char.IsDigit).ToArray());
+
+                // Only look at messages sent in the last 60 seconds
+                long cutoff = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - 60_000;
+
+                // Grab the first 20 chars of the message to match on
+                // (the full body may be truncated in the content provider on some ROMs)
+                var messageSnippet = message.Length > 20 ? message[..20] : message;
+
+                var cursor = context.ContentResolver?.Query(
+                    uri,
+                    new[] { "address", "body", "date" },
+                    "date > ?",
+                    new[] { cutoff.ToString() },
+                    "date DESC");
+
+                if (cursor == null) return false;
+
+                while (cursor.MoveToNext())
+                {
+                    var address = cursor.GetString(0) ?? "";
+                    var body = cursor.GetString(1) ?? "";
+
+                    var normalizedAddress = new string(address.Where(char.IsDigit).ToArray());
+
+                    bool numberMatch = normalizedAddress.EndsWith(normalizedTo)
+                                     || normalizedTo.EndsWith(normalizedAddress);
+                    bool messageMatch = body.Contains(messageSnippet,
+                                            StringComparison.OrdinalIgnoreCase);
+
+                    if (numberMatch && messageMatch)
+                    {
+                        cursor.Close();
+                        return true;
+                    }
+                }
+
+                cursor.Close();
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _log.Warning($"Sent folder check failed: {ex.Message}");
+                // Don't penalize — if the content provider is unavailable, assume ok
+                return true;
+            }
+        }
+#endif
 
         // ─────────────────────────────────────────────────────────────────────
         // MMS
